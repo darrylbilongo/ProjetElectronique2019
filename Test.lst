@@ -1,0 +1,241 @@
+CCS PCH C Compiler, Version 5.008, 5967               14-mai-19 02:34
+
+               Filename:   C:\Users\User\Desktop\Envoi\Test.lst
+
+               ROM used:   350 bytes (1%)
+                           Largest free fragment is 32418
+               RAM used:   6 (0%) at main() level
+                           13 (1%) worst case
+               Stack used: 2 locations
+               Stack size: 31
+
+*
+0000:  GOTO   00C2
+.................... #include <18F458.h> 
+.................... //////// Standard Header file for the PIC18F458 device //////////////// 
+.................... #device PIC18F458 
+0004:  MOVF   09,W
+0006:  MULWF  0B
+0008:  MOVFF  FF3,01
+000C:  MOVFF  FF4,00
+0010:  MULWF  0C
+0012:  MOVF   FF3,W
+0014:  ADDWF  00,F
+0016:  MOVF   0A,W
+0018:  MULWF  0B
+001A:  MOVF   FF3,W
+001C:  ADDWFC 00,W
+001E:  MOVWF  02
+0020:  GOTO   011C (RETURN)
+*
+0040:  MOVF   09,W
+0042:  CLRF   01
+0044:  SUBWF  08,W
+0046:  BC    004E
+0048:  MOVFF  08,00
+004C:  BRA    0066
+004E:  CLRF   00
+0050:  MOVLW  08
+0052:  MOVWF  0A
+0054:  RLCF   08,F
+0056:  RLCF   00,F
+0058:  MOVF   09,W
+005A:  SUBWF  00,W
+005C:  BTFSC  FD8.0
+005E:  MOVWF  00
+0060:  RLCF   01,F
+0062:  DECFSZ 0A,F
+0064:  BRA    0054
+0066:  RETURN 0
+....................  
+.................... #list 
+....................  
+.................... #device ADC=10 
+.................... #use delay(crystal=20000000) 
+0068:  CLRF   FEA
+006A:  MOVLW  08
+006C:  MOVWF  FE9
+006E:  MOVF   FEF,W
+0070:  BZ    008C
+0072:  MOVLW  06
+0074:  MOVWF  01
+0076:  CLRF   00
+0078:  DECFSZ 00,F
+007A:  BRA    0078
+007C:  DECFSZ 01,F
+007E:  BRA    0076
+0080:  MOVLW  7B
+0082:  MOVWF  00
+0084:  DECFSZ 00,F
+0086:  BRA    0084
+0088:  DECFSZ FEF,F
+008A:  BRA    0072
+008C:  RETURN 0
+.................... #use rs232(baud=9600,parity=N,xmit=PIN_C6,rcv=PIN_C7,bits=8,stream=PORT1) 
+....................  
+.................... void gestionLed(int temp, int seuil); 
+.................... void affTemp(int temperature); 
+.................... void main() 
+*
+00C2:  CLRF   FF8
+00C4:  BCF    FD0.7
+00C6:  MOVLW  81
+00C8:  MOVWF  FAF
+00CA:  MOVLW  A6
+00CC:  MOVWF  FAC
+00CE:  MOVLW  90
+00D0:  MOVWF  FAB
+00D2:  BSF    FC1.0
+00D4:  BSF    FC1.1
+00D6:  BSF    FC1.2
+00D8:  BCF    FC1.3
+00DA:  MOVLW  07
+00DC:  MOVWF  FB4
+.................... { 
+....................    setup_adc_ports(AN0); 
+00DE:  BCF    FC1.0
+00E0:  BSF    FC1.1
+00E2:  BSF    FC1.2
+00E4:  BSF    FC1.3
+....................    setup_adc(ADC_CLOCK_INTERNAL); 
+00E6:  BCF    FC1.6
+00E8:  BSF    FC2.6
+00EA:  BSF    FC2.7
+00EC:  BSF    FC1.7
+00EE:  BSF    FC2.0
+....................    setup_low_volt_detect(FALSE); 
+00F0:  CLRF   FD2
+....................     
+....................     
+....................    int seuil = 35; 
+....................    int temperature = 10; 
+00F2:  MOVLW  23
+00F4:  MOVWF  05
+00F6:  MOVLW  0A
+00F8:  MOVWF  06
+....................  
+....................    while(TRUE) 
+....................    {  
+....................       temperature = read_adc() * 100 / 1024; 
+00FA:  BSF    FC2.2
+00FC:  BTFSC  FC2.2
+00FE:  BRA    00FC
+0100:  MOVFF  FC4,03
+0104:  MOVFF  FC3,07
+0108:  MOVFF  FC4,08
+010C:  MOVFF  FC4,0A
+0110:  MOVFF  FC3,09
+0114:  CLRF   0C
+0116:  MOVLW  64
+0118:  MOVWF  0B
+011A:  BRA    0004
+011C:  MOVFF  02,08
+0120:  RRCF   02,W
+0122:  MOVWF  02
+0124:  RRCF   02,F
+0126:  MOVLW  3F
+0128:  ANDWF  02,F
+012A:  MOVFF  02,06
+....................       gestionLed(temperature,seuil);  
+012E:  MOVFF  06,07
+0132:  MOVFF  05,08
+0136:  BRA    0024
+....................       affTemp(temperature); 
+0138:  MOVFF  06,07
+013C:  BRA    008E
+....................      
+....................       if(temperature > seuil){ 
+013E:  MOVF   06,W
+0140:  SUBWF  05,W
+0142:  BC    0150
+....................          printf("%c", temperature | (1 >> 7)); 
+0144:  MOVF   06,W
+0146:  MOVWF  07
+0148:  BTFSS  F9E.4
+014A:  BRA    0148
+014C:  MOVWF  FAD
+....................       } 
+014E:  BRA    015A
+....................       else{ 
+....................          printf("%c", temperature | (0 >> 7)); 
+0150:  MOVF   06,W
+0152:  MOVWF  07
+0154:  BTFSS  F9E.4
+0156:  BRA    0154
+0158:  MOVWF  FAD
+....................       } 
+015A:  BRA    00FA
+....................  
+....................       //delay_ms(500); 
+....................    } 
+.................... } 
+....................  
+015C:  SLEEP 
+.................... void gestionLed(int temp, int seuil){ 
+....................      if(temp > seuil){ 
+*
+0024:  MOVF   07,W
+0026:  SUBWF  08,W
+0028:  BC    0034
+....................       output_bit(PIN_C1,1); 
+002A:  BSF    F8B.1
+002C:  BCF    F94.1
+....................       output_bit(PIN_C0,0); 
+002E:  BCF    F8B.0
+0030:  BCF    F94.0
+....................        
+....................    } 
+0032:  BRA    003C
+....................    else{ 
+....................       output_bit(PIN_C1,0); 
+0034:  BCF    F8B.1
+0036:  BCF    F94.1
+....................       output_bit(PIN_C0,1); 
+0038:  BSF    F8B.0
+003A:  BCF    F94.0
+....................    } 
+003C:  GOTO   0138 (RETURN)
+....................  
+.................... } 
+.................... void affTemp(int temperature){ 
+....................       output_d((temperature % 10) | (1 << 4)); 
+*
+008E:  MOVFF  07,08
+0092:  MOVLW  0A
+0094:  MOVWF  09
+0096:  RCALL  0040
+0098:  MOVF   00,W
+009A:  IORLW  10
+009C:  CLRF   F95
+009E:  MOVWF  F8C
+....................       delay_ms(7); 
+00A0:  MOVLW  07
+00A2:  MOVWF  08
+00A4:  RCALL  0068
+....................       output_d((temperature / 10) | (1 << 5)); 
+00A6:  MOVFF  07,08
+00AA:  MOVLW  0A
+00AC:  MOVWF  09
+00AE:  RCALL  0040
+00B0:  MOVF   01,W
+00B2:  IORLW  20
+00B4:  CLRF   F95
+00B6:  MOVWF  F8C
+....................       delay_ms(7); 
+00B8:  MOVLW  07
+00BA:  MOVWF  08
+00BC:  RCALL  0068
+00BE:  GOTO   013E (RETURN)
+.................... } 
+....................  
+....................  
+....................  
+
+Configuration Fuses:
+   Word  1: 2200   HS NOOSCSEN
+   Word  2: 0E0E   PUT BROWNOUT BORV25 NOWDT WDT128
+   Word  3: 0000  
+   Word  4: 0081   STVREN NOLVP NODEBUG
+   Word  5: C00F   NOPROTECT NOCPB NOCPD
+   Word  6: E00F   NOWRT NOWRTC NOWRTB NOWRTD
+   Word  7: 400F   NOEBTR NOEBTRB
